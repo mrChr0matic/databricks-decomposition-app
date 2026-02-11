@@ -53,7 +53,7 @@ export const TreeProvider = ({ children }) => {
 
   const fetchRoot = async ()=>{
     const res = await getTotalSales(
-      "taxi_gold",
+      "bi_taxi",
       kpi
     );
 
@@ -100,7 +100,7 @@ export const TreeProvider = ({ children }) => {
       const dim=dimsToReplay[i];
 
       const data = await getSplitData({
-        table:"taxi_gold",
+        table:"bi_taxi",
         kpi_metric:kpi,
         split_col:dim,
         filters:buildFilters(replayPath)
@@ -166,7 +166,7 @@ export const TreeProvider = ({ children }) => {
     setLoading(true);
 
     const data = await getSplitData({
-      table:"taxi_gold",
+      table:"bi_taxi",
       kpi_metric:kpi,
       split_col:dim,
       filters:buildFilters(activePath)
