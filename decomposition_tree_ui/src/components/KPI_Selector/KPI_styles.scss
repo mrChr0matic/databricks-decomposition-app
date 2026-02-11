@@ -1,0 +1,42 @@
+.selector {
+  width: 70%;
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem auto;
+}
+
+.dropdown {
+  width: 80%;
+  padding: 0.75rem 1rem;
+
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  cursor: pointer;
+  outline: none;
+
+  appearance: none;
+
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 14px;
+
+  &:hover {
+    border-color: red;
+  }
+
+  &:focus {
+    border-color: red;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25);
+  }
+
+  &:active {
+    transform: scale(1);
+    background-color: #eef2ff;
+  }
+}

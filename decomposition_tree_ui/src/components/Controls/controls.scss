@@ -1,0 +1,74 @@
+.controls{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+
+    .box{
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        width: 100%;
+        align-items: center;
+        padding: 10px 100px;
+
+        .dim-dropdown {
+            width: 200px;
+            text-align: center;
+            padding: 0.75rem 1rem;
+
+            font-size: 1rem;
+            font-weight: 500;
+            color: #111827;
+
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+
+            cursor: pointer;
+            outline: none;
+
+            appearance: none;
+
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 14px;
+
+            &:hover {
+                border-color: red;
+            }
+
+            &:focus {
+                border-color: red;
+                box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25);
+            }
+
+            &:active {
+                transform: scale(1);
+                background-color: #eef2ff;
+            }
+        }
+
+        .reset-button, .query-button{
+            width: 100px;
+            border: 1px solid red;
+            color: red;
+            text-align: center;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: monospace;
+            transition: 0.5s;
+        }
+
+        .reset-button:hover, .query-button:hover{
+            background: red;
+            color: white;
+            cursor: pointer;
+
+        }
+
+    }
+}
+

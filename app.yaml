@@ -1,0 +1,16 @@
+command: [
+  "uvicorn",
+  "backend.api:app",
+  "--host", "0.0.0.0",
+  "--port", "8000"
+]
+
+env:
+  - name: SQL_SERVER_HOSTNAME
+    valueFrom: SQL_SERVER_HOSTNAME
+
+  - name: HTTP_PATH
+    valueFrom: HTTP_PATH
+
+  - name: ACCESS_TOKEN
+    valueFrom: ACCESS_TOKEN
