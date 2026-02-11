@@ -8,7 +8,6 @@ const KPI_Selector = () => {
     "total_amount",
     "trip_distance",
     "passenger_count",
-    "sales_amount"
   ];
   const {setKPI} = useTree();
 
