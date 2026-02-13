@@ -1,1 +1,9 @@
 app.zip
+venv/
+__pycache__/
+# Env files
+.env
+*.env
+.DS_Store
+
+node_modules/
