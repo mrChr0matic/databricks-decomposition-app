@@ -3,7 +3,7 @@
   display: flex;
   justify-content: center;
   position: relative;
-  background: #FFF;
+  background: var(--color-bg-main); /* pure black */
 }
 
 .fitting::after {
@@ -15,66 +15,74 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(255, 77, 77, 0.8),
+    rgba(var(--color-primary-rgb), 0.9),
     transparent
   );
 }
 
-
-.navbar{
-    width: 90%;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: center;
+.navbar {
+  width: 90%;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
+  background: var(--color-bg-main);
 }
 
-.nav{
-    width: 100%;
-    display: flex;
-    align-items: center;
+.nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.logo{
-    display: flex;
-    align-items: center;
-    img{
-        width: 100px;
-    }
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  width: 100px;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6)); /* subtle yellow glow */
 }
 
 .table-dropdown {
-    width: 150px;
-    text-align: center;
-    padding: 0.75rem 1rem;
+  width: 150px;
+  text-align: center;
+  padding: 0.75rem 1rem;
 
-    font-size: 1rem;
-    font-weight: 500;
-    color: #111827;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-main); /* light text */
 
-    background-color: #f9fafb;
-    border: 1px solid #d1d5db;
-    border-radius: 10px;
+  background-color: var(--color-bg-main);
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
 
-    cursor: pointer;
-    outline: none;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
 
-    appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 14px;
 
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 14px;
+  transition: all 0.2s ease;
+}
 
-    &:hover {
-        border-color: red;
-    }
+.table-dropdown:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+  transform: scaleX(1.05);
+  color: var(--color-bg-main);
+  font-weight: 400;
+}
 
-    &:focus {
-        border-color: red;
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25);
-    }
+.table-dropdown:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+}
 
-    &:active {
-        transform: scale(1);
-        background-color: #eef2ff;
-    }
+.table-dropdown:active {
+  transform: scale(0.99);
+  background-color: var(--color-bg-main);
 }

@@ -5,7 +5,7 @@ import { useTree } from "../../context/TreeContext";
 
 const Navbar = () => {
 
-  const tables = ["sales_gold", "taxi_gold"];
+  const tables = ["taxi_gold"];
 
   const {selectedTable, setSelectedTable} = useTree();
 
@@ -15,7 +15,7 @@ const Navbar = () => {
             <div className="nav">
 
                 <div className="logo">
-                <img src="./sigmoid-logo.png" alt="logo-err"/>
+                <img src="./taxi.png" alt="logo-err"/>
                 </div>
 
                 <KPI_Selector/>

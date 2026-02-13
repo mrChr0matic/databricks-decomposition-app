@@ -74,9 +74,6 @@ const Controls = () => {
                 value={item.node_name}
               >
                 {item.node_name}
-                {" ("}
-                {item.value.toLocaleString()}
-                {")"}
               </option>
             ))}
           </select>
