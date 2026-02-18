@@ -192,6 +192,10 @@ def get_split_data(payload: SplitRequest):
     except Exception as e:
         raise HTTPException(500, str(e))
 
+@app.get("/api/debug/headers")
+def debug_headers(request: Request):
+    return {"headers": dict(request.headers)}
+
 # Catch-all for React SPA (must be LAST)
 @app.get("/{full_path:path}")
 def serve_react_app(request: Request, full_path: str):
@@ -208,4 +212,7 @@ def serve_react_app(request: Request, full_path: str):
 
     # Otherwise serve React
     return FileResponse(os.path.join(REACT_BUILD_PATH, "index.html"))
+
+
+
 
