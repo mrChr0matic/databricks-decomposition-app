@@ -109,11 +109,26 @@ class BaseCol(BaseModel):
 # AUTH
 # ==============================
 
+# def get_user_token(request: Request) -> str:
+#     token = request.headers.get("x-forwarded-access-token")
+#     if not token:
+#         raise HTTPException(status_code=401, detail="Not authenticated")
+#     return token
+
 def get_user_token(request: Request) -> str:
     token = request.headers.get("x-forwarded-access-token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return token
+    if token:
+        return token
+
+    # Local fallback
+    env_token = os.getenv("ACCESS_TOKEN")
+    if env_token:
+        return env_token
+
+    raise HTTPException(
+        status_code=401,
+        detail="No user token available (header or env)"
+    )
 
 
 # ==============================
