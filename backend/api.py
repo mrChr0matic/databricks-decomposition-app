@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -42,7 +42,6 @@ REACT_BUILD_PATH = os.path.join(
 )
 
 
-
 # ==============================
 # VALIDATION
 # ==============================
@@ -67,10 +66,9 @@ def validate(table: Optional[str] = None,
 
 app = FastAPI()
 
-# Broad CORS for app hosting
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Databricks app domain varies
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,22 +78,17 @@ app.add_middleware(
 # SERVE REACT
 # ==============================
 
-
-# Serve assets folder (JS/CSS chunks)
 app.mount(
     "/assets",
     StaticFiles(directory=os.path.join(REACT_BUILD_PATH, "assets")),
     name="assets",
 )
 
-# Serve public/root static files (vite.svg, images, etc)
 app.mount(
     "/static",
     StaticFiles(directory=REACT_BUILD_PATH),
     name="static",
 )
-
-
 
 
 # ==============================
@@ -113,14 +106,25 @@ class BaseCol(BaseModel):
 
 
 # ==============================
+# AUTH
+# ==============================
+
+def get_user_token(request: Request) -> str:
+    token = request.headers.get("x-forwarded-access-token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return token
+
+
+# ==============================
 # DB CONNECTION
 # ==============================
 
-def get_connection():
+def get_connection(token: str):
     return sql.connect(
         server_hostname=os.getenv("SQL_SERVER_HOSTNAME"),
         http_path=os.getenv("HTTP_PATH"),
-        access_token=os.getenv("ACCESS_TOKEN"),
+        access_token=token,
     )
 
 
@@ -128,15 +132,49 @@ def get_connection():
 # API ENDPOINTS
 # ==============================
 
+# @app.get("/api/debug/headers")
+# def debug_headers(request: Request):
+#     return {"headers": dict(request.headers)}
+
+# import base64, json
+
+# @app.get("/api/debug/token-scopes")
+# def token_scopes(token: str = Depends(get_user_token)):
+#     try:
+#         # JWT is 3 parts split by dots, middle part is the payload
+#         payload = token.split(".")[1]
+#         # Add padding if needed
+#         payload += "=" * (4 - len(payload) % 4)
+#         decoded = json.loads(base64.b64decode(payload).decode("utf-8"))
+#         return {
+#             "scopes": decoded.get("scp", decoded.get("scope", "not found")),
+#             "sub": decoded.get("sub"),
+#             "exp": decoded.get("exp")
+#         }
+#     except Exception as e:
+#         return {"error": str(e)}
+
+# @app.get("/api/debug/whoami")
+# def whoami(token: str = Depends(get_user_token)):
+#     try:
+#         with get_connection(token) as conn:
+#             with conn.cursor() as cursor:
+#                 cursor.execute("SELECT current_user()")
+#                 result = cursor.fetchone()
+#         return {"user": result[0]}
+#     except Exception as e:
+#         raise HTTPException(500, detail={"error": str(e), "type": type(e).__name__})
+
+
 @app.get("/api/total-sales")
-def get_total_sales(kpi_metric: str, table: str):
+def get_total_sales(kpi_metric: str, table: str, token: str = Depends(get_user_token)):
 
     validate(table, kpi_metric)
 
     query = f"SELECT SUM({kpi_metric}) FROM poc_db.{table}"
 
     try:
-        with get_connection() as conn:
+        with get_connection(token) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
@@ -144,11 +182,17 @@ def get_total_sales(kpi_metric: str, table: str):
         return {"total": result[0] if result and result[0] else 0}
 
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(500, detail={
+            "error": str(e),
+            "type": type(e).__name__,
+            "query": query,
+            "table": table,
+            "metric": kpi_metric
+        })
 
 
 @app.post("/api/split-data")
-def get_split_data(payload: SplitRequest):
+def get_split_data(payload: SplitRequest, token: str = Depends(get_user_token)):
 
     validate(payload.table, payload.kpi_metric, payload.split_col)
 
@@ -176,7 +220,7 @@ def get_split_data(payload: SplitRequest):
     """
 
     try:
-        with get_connection() as conn:
+        with get_connection(token) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
                 rows = cursor.fetchall()
@@ -190,29 +234,27 @@ def get_split_data(payload: SplitRequest):
         ]
 
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(500, detail={
+            "error": str(e),
+            "type": type(e).__name__,
+            "query": query,
+            "payload": payload.dict()
+        })
 
-@app.get("/api/debug/headers")
-def debug_headers(request: Request):
-    return {"headers": dict(request.headers)}
 
-# Catch-all for React SPA (must be LAST)
+# ==============================
+# SERVE REACT SPA (must be LAST)
+# ==============================
+
 @app.get("/{full_path:path}")
 def serve_react_app(request: Request, full_path: str):
 
-    # Allow API routes
     if request.url.path.startswith("/api"):
         raise HTTPException(status_code=404)
 
     file_path = os.path.join(REACT_BUILD_PATH, full_path)
 
-    # Serve file if it exists
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return FileResponse(file_path)
 
-    # Otherwise serve React
     return FileResponse(os.path.join(REACT_BUILD_PATH, "index.html"))
-
-
-
-

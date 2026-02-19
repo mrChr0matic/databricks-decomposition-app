@@ -2,3 +2,4 @@ fastapi
 uvicorn
 databricks-sql-connector
 pydantic
+httpx
