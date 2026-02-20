@@ -308,6 +308,45 @@ def genie_endpoint(payload: GenieRequest, token: str = Depends(get_user_token)):
         raise HTTPException(status_code=500, detail={"error": str(e), "type": type(e).__name__})
 
 
+METRIC_COLS = {
+    "passenger_count", "trip_distance", "fare_amount", "extra",
+    "mta_tax", "tip_amount", "tolls_amount", "improvement_surcharge",
+    "total_amount", "pickup_latitude", "pickup_longitude",
+    "dropoff_latitude", "dropoff_longitude"
+}
+
+@app.get("/api/available-dims")
+def get_available_dims(token: str = Depends(get_user_token)):
+    try:
+        with get_connection(token) as conn:
+            with conn.cursor() as cursor:
+
+                cursor.execute("DESCRIBE powerbi_poc.poc_schema.bi_taxi_secure")
+                all_cols = [row[0] for row in cursor.fetchall()]
+
+                dim_candidates = [
+                    col for col in all_cols
+                    if col not in METRIC_COLS
+                ]
+
+                available = []
+                for col in dim_candidates:
+                    cursor.execute(f"""
+                        SELECT COUNT(DISTINCT `{col}`)
+                        FROM powerbi_poc.poc_schema.bi_taxi_secure
+                        WHERE `{col}` IS NOT NULL
+                    """)
+                    count = cursor.fetchone()[0]
+                    if count >= 1:
+                        available.append(col)
+
+        return {"dims": available}
+
+    except Exception as e:
+        raise HTTPException(
+            500,
+            detail={"error": str(e), "type": type(e).__name__}
+        )
 # ==============================
 # SERVE REACT SPA (must be LAST)
 # ==============================

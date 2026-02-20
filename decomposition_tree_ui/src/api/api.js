@@ -109,4 +109,9 @@ export const askGenie = async ({
   }
 };
 
+export const getAvailableDims = async () => {
+  const res = await api.get("/available-dims");
+  return res.data;
+};
+
 export default api;
