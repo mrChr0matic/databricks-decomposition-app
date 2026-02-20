@@ -1,9 +1,10 @@
-command: [
-  "uvicorn",
-  "backend.api:app",
-  "--host", "0.0.0.0",
-  "--port", "8000"
-]
+command:
+  - uvicorn
+  - backend.api:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
 
 env:
   - name: SQL_SERVER_HOSTNAME
@@ -14,3 +15,9 @@ env:
 
   - name: ACCESS_TOKEN
     valueFrom: ACCESS_TOKEN
+
+  - name: DATABRICKS_HOST
+    valueFrom: DATABRICKS_HOST
+
+  - name: GENIE_SPACE_ID
+    valueFrom: GENIE_SPACE_ID

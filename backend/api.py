@@ -307,11 +307,7 @@ def genie_endpoint(payload: GenieRequest, token: str = Depends(get_user_token)):
     except Exception as e:
         raise HTTPException(status_code=500, detail={"error": str(e), "type": type(e).__name__})
 
-# @app.post("/api/genie")
-# async def genie_endpoint(request: Request):
-#     body = await request.json()
-#     print(body)
-#     return {"ok": True}
+
 # ==============================
 # SERVE REACT SPA (must be LAST)
 # ==============================
