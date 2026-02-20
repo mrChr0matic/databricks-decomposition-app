@@ -13,7 +13,8 @@ const Genie = ({ isOpen, onClose }) => {
 
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
-  const [conversationId, setConversationId] = useState(null); // <-- track it
+  const [conversationId, setConversationId] = useState(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,7 +31,9 @@ const Genie = ({ isOpen, onClose }) => {
     ]);
 
     setInput("");
-
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "40px";
+    }
     try {
       const res = await askGenie({
         question: userMessage,
@@ -77,10 +80,22 @@ const Genie = ({ isOpen, onClose }) => {
       </div>
 
       <div className="genie-input-area">
-        <input
+        <textarea
+          ref={textareaRef}
           value={input}
-          onChange={(e)=>setInput(e.target.value)}
-          onKeyDown={(e)=>e.key==="Enter" && handleSend()}
+          onChange={(e) => {
+            setInput(e.target.value);
+
+            const el = textareaRef.current;
+            el.style.height = "40px"; // reset first
+            el.style.height = Math.min(el.scrollHeight, 250) + "px";
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="Ask Genie..."
         />
         <button onClick={handleSend}>Send</button>

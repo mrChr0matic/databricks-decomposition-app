@@ -78,20 +78,34 @@
   background: white;
   border-top: 1px solid #e5e7eb;
   gap: 8px;
+  align-items: center;
 }
 
-.genie-input-area input {
+.genie-input-area textarea {
   flex: 1;
-  padding: 8px 10px;
+  min-height: 40px;
+  max-height: 250px;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .genie-input-area button {
   padding: 8px 12px;
+  height: 40px;
   border-radius: 8px;
   border: none;
   background: #2563eb;
   color: white;
   cursor: pointer;
+}
+
+.genie-input-area {
+  align-items: flex-end;
 }
