@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import "./Genie.scss";
 import { askGenie } from "../../api/api";
 import { useTree } from "../../context/TreeContext";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Genie = ({ isOpen, onClose }) => {
 
@@ -72,7 +74,9 @@ const Genie = ({ isOpen, onClose }) => {
         {messages.map((msg, i) => (
           <div key={i} className={`message-row ${msg.role}`}>
             <div className="message-bubble">
-              {msg.text}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.text}
+              </ReactMarkdown>
             </div>
           </div>
         ))}
