@@ -217,8 +217,8 @@ def get_total_sales(kpi_metric: str, table: str, token: str = Depends(get_user_t
 
     validate(table, kpi_metric)
 
-    query = f"SELECT SUM({kpi_metric}) FROM poc_db.{table}"
-
+    # query = f"SELECT SUM({kpi_metric}) FROM poc_db.{table}"
+    query = f"SELECT SUM({kpi_metric}) FROM powerbi_poc.poc_schema.bi_taxi_secure"
     try:
         with get_connection(token) as conn:
             with conn.cursor() as cursor:
@@ -258,7 +258,7 @@ def get_split_data(payload: SplitRequest, token: str = Depends(get_user_token)):
     query = f"""
         SELECT `{payload.split_col}` AS node_name,
                SUM({payload.kpi_metric}) AS value
-        FROM poc_db.{payload.table}
+        FROM powerbi_poc.poc_schema.bi_taxi_secure
         WHERE {where_clause}
         GROUP BY `{payload.split_col}`
         ORDER BY value DESC
