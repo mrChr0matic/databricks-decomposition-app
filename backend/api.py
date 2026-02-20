@@ -5,8 +5,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from databricks import sql
 from typing import Optional
-import os
+import os, requests
 from dotenv import load_dotenv
+from typing import List, Dict
 
 load_dotenv()
 
@@ -95,6 +96,14 @@ app.mount(
 # MODELS
 # ==============================
 
+
+class GenieRequest(BaseModel):
+    question: str
+    table: str
+    kpi_metric: str
+    path: List[Dict[str, str]]
+    conversation_id: Optional[str] = None  # <-- add this
+    
 class SplitRequest(BaseModel):
     filters: dict[str, str]
     split_col: str
@@ -114,6 +123,61 @@ class BaseCol(BaseModel):
 #     if not token:
 #         raise HTTPException(status_code=401, detail="Not authenticated")
 #     return token
+
+
+import time
+
+def call_genie_service(context, token):
+    workspace_url = os.getenv("DATABRICKS_HOST")
+    space_id = os.getenv("GENIE_SPACE_ID")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    conversation_id = context.get("conversation_id")
+
+    if conversation_id:
+        url = f"{workspace_url}/api/2.0/genie/spaces/{space_id}/conversations/{conversation_id}/messages"
+        res = requests.post(url, headers=headers, json={"content": context["question"]})
+    else:
+        url = f"{workspace_url}/api/2.0/genie/spaces/{space_id}/start-conversation"
+        res = requests.post(url, headers=headers, json={"content": context["question"]})
+
+    print("Genie start/continue status:", res.status_code)
+    res.raise_for_status()
+    data = res.json()
+
+    conversation_id = data["conversation_id"]
+    message_id = data["message_id"]
+
+    poll_url = f"{workspace_url}/api/2.0/genie/spaces/{space_id}/conversations/{conversation_id}/messages/{message_id}"
+
+    for _ in range(30):
+        poll_res = requests.get(poll_url, headers=headers)
+        poll_res.raise_for_status()
+        poll_data = poll_res.json()
+
+        status = poll_data.get("status")
+        print("Poll status:", status)
+
+        if status == "COMPLETED":
+            attachments = poll_data.get("attachments", [])
+            for attachment in attachments:
+                if attachment.get("text"):
+                    return {
+                        "answer": attachment["text"]["content"],
+                        "conversation_id": conversation_id  # <-- return it
+                    }
+            return {"answer": "No text response found.", "conversation_id": conversation_id}
+
+        elif status in ("FAILED", "CANCELLED"):
+            raise Exception(f"Genie query {status}: {poll_data}")
+
+        time.sleep(2)
+
+    raise Exception("Genie timed out")
 
 def get_user_token(request: Request) -> str:
     token = request.headers.get("x-forwarded-access-token")
@@ -146,39 +210,6 @@ def get_connection(token: str):
 # ==============================
 # API ENDPOINTS
 # ==============================
-
-# @app.get("/api/debug/headers")
-# def debug_headers(request: Request):
-#     return {"headers": dict(request.headers)}
-
-# import base64, json
-
-# @app.get("/api/debug/token-scopes")
-# def token_scopes(token: str = Depends(get_user_token)):
-#     try:
-#         # JWT is 3 parts split by dots, middle part is the payload
-#         payload = token.split(".")[1]
-#         # Add padding if needed
-#         payload += "=" * (4 - len(payload) % 4)
-#         decoded = json.loads(base64.b64decode(payload).decode("utf-8"))
-#         return {
-#             "scopes": decoded.get("scp", decoded.get("scope", "not found")),
-#             "sub": decoded.get("sub"),
-#             "exp": decoded.get("exp")
-#         }
-#     except Exception as e:
-#         return {"error": str(e)}
-
-# @app.get("/api/debug/whoami")
-# def whoami(token: str = Depends(get_user_token)):
-#     try:
-#         with get_connection(token) as conn:
-#             with conn.cursor() as cursor:
-#                 cursor.execute("SELECT current_user()")
-#                 result = cursor.fetchone()
-#         return {"user": result[0]}
-#     except Exception as e:
-#         raise HTTPException(500, detail={"error": str(e), "type": type(e).__name__})
 
 
 @app.get("/api/total-sales")
@@ -255,8 +286,32 @@ def get_split_data(payload: SplitRequest, token: str = Depends(get_user_token)):
             "query": query,
             "payload": payload.dict()
         })
+        
+# GENIE endpoint
 
+@app.post("/api/genie")
+def genie_endpoint(payload: GenieRequest, token: str = Depends(get_user_token)):
+    try:
+        context = {
+            "question": payload.question,
+            "table": payload.table,
+            "kpi": payload.kpi_metric,
+            "filters": payload.path,
+            "conversation_id": payload.conversation_id, 
+        }
+        result = call_genie_service(context, token)
+        return {
+            "response": result.get("answer", "No answer returned"),
+            "conversation_id": result.get("conversation_id"),  # <-- return to frontend
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": str(e), "type": type(e).__name__})
 
+# @app.post("/api/genie")
+# async def genie_endpoint(request: Request):
+#     body = await request.json()
+#     print(body)
+#     return {"ok": True}
 # ==============================
 # SERVE REACT SPA (must be LAST)
 # ==============================

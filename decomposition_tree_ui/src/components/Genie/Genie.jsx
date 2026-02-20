@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import "./Genie.scss";
+import { askGenie } from "../../api/api";
+import { useTree } from "../../context/TreeContext";
 
 const Genie = ({ isOpen, onClose }) => {
+
+  const { kpi, selectedTable, path } = useTree();
 
   const [messages, setMessages] = useState([
     { role: "genie", text: "Hello 👋 I’m Genie." }
@@ -9,23 +13,48 @@ const Genie = ({ isOpen, onClose }) => {
 
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
+  const [conversationId, setConversationId] = useState(null); // <-- track it
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    setMessages(prev => [...prev, { role: "user", text: input }]);
+    const userMessage = input;
+
+    setMessages(prev => [
+      ...prev,
+      { role: "user", text: userMessage }
+    ]);
+
     setInput("");
 
-    setTimeout(() => {
+    try {
+      const res = await askGenie({
+        question: userMessage,
+        table: "bi_taxi",
+        kpi_metric: kpi,
+        path,
+        conversation_id: conversationId
+      });
+
+      if (res.conversation_id) {
+        setConversationId(res.conversation_id);
+      }
+
       setMessages(prev => [
         ...prev,
-        { role: "genie", text: "Mock response for now." }
+        { role: "genie", text: res.response }
       ]);
-    }, 600);
+
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { role: "genie", text: "Error: " + err.message }
+      ]);
+    }
   };
 
   return (

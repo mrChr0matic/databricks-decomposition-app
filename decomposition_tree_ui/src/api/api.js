@@ -83,4 +83,30 @@ export const getSplitData = async ({
   }
 };
 
+export const askGenie = async ({
+  question,
+  table,
+  kpi_metric,
+  path,
+  conversation_id
+}) => {
+  try {
+    const res = await api.post(
+      "/genie",
+      {
+        question,
+        table,
+        kpi_metric,
+        path,
+        conversation_id
+      }
+    );
+
+    return res.data;
+
+  } catch (err) {
+    throw err;
+  }
+};
+
 export default api;
