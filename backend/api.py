@@ -293,7 +293,7 @@ def genie_endpoint(payload: GenieRequest, token: str = Depends(get_user_token)):
     try:
         context = {
             "question": payload.question,
-            "table": payload.table,
+            "table": "poc_catalog.dashboard_poc.bi_taxi_secure",
             "kpi": payload.kpi_metric,
             "filters": payload.path,
             "conversation_id": payload.conversation_id, 
