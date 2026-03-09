@@ -114,4 +114,13 @@ export const getAvailableDims = async () => {
   return res.data;
 };
 
+export const getAvailableKPIs = async () => {
+  try {
+    const res = await api.get("/available-kpis");
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
 export default api;

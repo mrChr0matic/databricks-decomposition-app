@@ -8,7 +8,8 @@ import {
 import {
   getSplitData,
   getTotalSales,
-  getAvailableDims
+  getAvailableDims,
+  getAvailableKPIs
 } from "../api/api";
 
 const TreeContext = createContext();
@@ -24,7 +25,21 @@ export const TreeProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [selectedValue, setSelectedValue] = useState("");
   const [selectedTable, setSelectedTable] = useState("");
+  const [availableKPIs, setAvailableKPIs] = useState([]);
 
+  useEffect(() => {
+    const fetchKPIs = async () => {
+      try {
+        const res = await getAvailableKPIs();
+        setAvailableKPIs(res.kpis);
+      } catch (err) {
+        console.error("Failed to fetch KPIs:", err);
+      }
+    };
+
+    fetchKPIs();
+  }, []);
+  
   // Fetch dims once on mount
   useEffect(() => {
     const fetchDims = async () => {
@@ -146,6 +161,7 @@ export const TreeProvider = ({ children }) => {
       levels,
       path,
       loading,
+      availableKPIs,
       availableDims,
       selectedValue,
       setSelectedValue,
